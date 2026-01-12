@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import ReactGA from 'react-ga4';
-import { useAccount } from 'wagmi';
+// add useBalance
+import { useAccount, useBalance } from 'wagmi';
 import classNames from 'classnames';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import Jazzicon, { jsNumberForAddress } from 'react-jazzicon';
@@ -13,6 +14,15 @@ import { useLogoutCallback } from '@/hooks/user';
 
 function Web3StatusInner() {
   const { address, connector } = useAccount();
+  // native token balance (ETH / MATIC / BNB)
+  const { data: nativeBalance } = useBalance({
+    address,
+    enabled: !!address,
+  });
+  // format balance to 4 decimal
+  const formattedNativeBalance = nativeBalance
+  ? Number(nativeBalance.formatted).toFixed(4)
+  : null;
   const { data: balance } = useBABTBalanceOf({ address });
   const gamerEmailInfo = useRecoilValue(gamerEmailInfoAtom);
   const setIsBABTHolder = useSetRecoilState(isBABTHolderAtom);
@@ -61,8 +71,21 @@ function Web3StatusInner() {
             'flex h-10 cursor-pointer items-center justify-center pl-3 pr-1.5 text-sm font-medium',
             isBABTHolder && 'overflow-hidden rounded-full bg-gradient-babt',
           )}
-        >
+        >  
+        <div className="flex flex-col leading-tight">
           <p className={classNames(isBABTHolder && 'font-medium text-black')}>{shortenAddress(address)}</p>
+          
+          {formattedNativeBalance && (
+            <span
+              className={classNames(
+                'text-xs',
+                isBABTHolder ? 'text-black/70' : 'text-gray-400'
+              )}
+            >
+              {formattedNativeBalance} {nativeBalance?.symbol}
+            </span>
+          )}
+        </div> 
           <div className="ml-3 h-6.5 w-6.5 overflow-hidden rounded-full border border-white bg-p12-gradient sm:hidden">
             {isBABTHolder ? (
               <img
